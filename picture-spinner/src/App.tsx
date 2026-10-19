@@ -60,30 +60,72 @@ class SpinnerAudio {
     oscillator.stop(start + duration + 0.005);
   }
 
-   tick() {
-    const ctx = this.context;
-    if (!ctx || ctx.state !== 'running' || ctx.currentTime - this.lastTick < 0.055) return;
-    this.lastTick = ctx.currentTime;
+tick() {
+  const ctx = this.context;
 
-    // Rounded body, bright attack, and a subtle descending tail.
-    this.tone(520, 0, 0.042, 0.19, 'triangle');
-    this.tone(1560, 0, 0.012, 0.055, 'sine');
-    this.tone(390, 0.008, 0.032, 0.09, 'sine');
-  }
+  if (
+    !ctx ||
+    ctx.state !== 'running' ||
+    ctx.currentTime - this.lastTick < 0.035
+  ) return;
 
+  this.lastTick = ctx.currentTime;
+  const t = ctx.currentTime;
 
-  winner() {
-    this.stop();
+  // The main sound: a bright, woody mechanical clack.
+  this.tone(1050, 0, 0.018, 0.16, 'triangle');
 
-    // Lower-register melody with a subtle octave layer.
-    [261.63, 329.63, 392, 523.25].forEach((note, index) => {
-      this.tone(note, index * 0.11, 0.42, 0.15, 'sine');
-      this.tone(note * 2, index * 0.11, 0.28, 0.035, 'triangle');
-    });
+  // A little hollow body underneath the click.
+  this.tone(310, 0.002, 0.032, 0.12, 'sine');
 
-    // Bass foundation beneath the reveal.
-    this.tone(130.81, 0, 0.65, 0.18, 'sine');
-  }
+  // Sharp contact transient.
+  this.tone(2900, 0, 0.005, 0.055, 'triangle');
+
+  // Short, higher resonant tap.
+  this.tone(1650, 0.004, 0.012, 0.045, 'sine');
+}
+
+  
+winner() {
+  this.stop();
+
+  const ctx = this.context;
+  if (!ctx || ctx.state !== 'running') return;
+
+  // Fast ascending reward sequence.
+  const notes = [
+    { time: 0.00, freq: 523.25 },
+    { time: 0.075, freq: 659.25 },
+    { time: 0.15, freq: 783.99 },
+  ];
+
+  notes.forEach(({ time, freq }, i) => {
+    // Bright mechanical clack.
+    this.tone(650 + i * 100, time, 0.035, 0.13, 'triangle');
+    this.tone(2600 + i * 200, time, 0.008, 0.045, 'triangle');
+
+    // Rising musical sparkle.
+    this.tone(freq, time, 0.20, 0.075, 'sine');
+  });
+
+  // Final winning hit.
+  const hit = 0.24;
+
+  this.tone(240, hit, 0.09, 0.18, 'triangle');
+  this.tone(720, hit, 0.045, 0.17, 'triangle');
+  this.tone(3000, hit, 0.009, 0.055, 'triangle');
+
+  // Bright, satisfying victory chord.
+  [
+    [659.25, 0.34],
+    [783.99, 0.34],
+    [987.77, 0.30],
+    [1318.51, 0.18],
+  ].forEach(([freq, gain]) => {
+    this.tone(freq, hit + 0.015, 0.48, gain, 'sine');
+  });
+}
+
 
   stop() {
     for (const voice of this.voices) voice.stop();
